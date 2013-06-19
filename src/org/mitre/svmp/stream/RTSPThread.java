@@ -29,15 +29,13 @@ import java.util.TreeMap;
 import android.util.Log;
 
 public class RTSPThread extends Thread {
-	private static final String TAG = "RTSP-THREAD";
-
 	Socket sock;
 	Session sess;
 	StreamServer srv;	
-
-	private String streamSourceIP = "192.168.100.50";
-	private String clientIP = null;
+	private  String IP = "127.0.0.1";
+	private  String remoteIP = "127.0.0.1";
 	private String baseDescription = "";
+	private static final String TAG = "RTSP-THREAD";
 	
 	
 	public RTSPThread(Socket s, StreamServer srv) throws SocketException {
@@ -45,25 +43,22 @@ public class RTSPThread extends Thread {
 		this.sock = s;
 		s.setSoTimeout(1000*120);	// 120 seconds = 2 minutes before timeout
 		this.srv = srv;		
-
-		if (streamSourceIP == null)
-			streamSourceIP = sock.getLocalAddress().getHostAddress();
-
+		IP = sock.getLocalAddress().getHostAddress();
 		baseDescription = "v=0\n" +
-		"o=mocsi 1234567890 1 IN IP4 "+streamSourceIP+"\n" +
+		"o=mocsi 1234567890 1 IN IP4 "+IP+"\n" +
         //"o=mocsi 1234567890 1 IN IP4 "+"192.168.42.108"+"\n" +
 		"s=MOCSI SVMP Thin Client RTP Stream\n" +
 		"i=Thin client video\n" +
 		"t=0 0\n" +
 		"a=range:npt=now-\n" +
-		"c=IN IP4 "+streamSourceIP+"\n";
+		"c=IN IP4 "+IP+"\n";
 		
-		clientIP = sock.getInetAddress().getHostAddress();		
-		Log.e(TAG,"starting session with IP: " + clientIP);
+		remoteIP = sock.getInetAddress().getHostAddress();		
+		Log.e(TAG,"starting session with IP: " + remoteIP);
 		sess = srv.openSession("rtsp");	
 		if (sess == null)
 			Log.e(TAG,"srv.openSession returned null");
-		sess.start(clientIP);
+		sess.start(remoteIP);
 		Log.e(TAG,"session established:"+sess.getID());
 		
 	}

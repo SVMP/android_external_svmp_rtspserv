@@ -15,25 +15,57 @@
  */
 package org.mitre.svmp.stream;
 
+//import java.io.BufferedReader;
 import java.io.IOException;
+//import java.io.InputStreamReader;
+//import java.math.BigInteger;
+//import java.net.InetAddress;
+//import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
+//import java.net.SocketException;
+//import java.net.UnknownHostException;
+//import java.util.Enumeration;
+//import java.util.Random;
 import java.util.TreeMap;
 
 import android.util.Log;
 
+//import android.net.DhcpInfo;
 
+/*
+import org.mitre.svmp.protocol.SVMPConnection;
+import org.mitre.svmp.protocol.SVMPPacket;
+import org.mitre.svmp.protocol.SVMPPacketListener;
+import org.mitre.svmp.protocol.SVMPServerConnection;
+import org.mitre.svmp.protocol.SVMPStatusListener;
+*/
+//public class StreamServer  implements SVMPStatusListener, SVMPPacketListener {
 public class StreamServer {
 	private static final String TAG = "RTSP-StreamServer";
+	//private SVMPServerConnection c;
 	private TreeMap<String, Session> sessions = new TreeMap<String, Session>();
+	//private Random r = new Random(System.nanoTime() ^ System.currentTimeMillis() ^ 0x17295ca9 + 0x49ef2fc4);
 	private ServerSocket rtspSocket;
 	
 	private String streamDescription = "";
 
 	
+	/*public void setStreamDescription(String str){
+		streamDescription = str;
+		
+	}*/
+		
 	public StreamServer() throws IOException {
+		
+		
+		// get stream parameters
+		//Process p = Runtime.getRuntime().exec(streamCommand("0.0.0.0",0,0));
+		
 		addSession();	
 		
+		//System.err.println("streamDescription: " + streamDescription);
+				
 		rtspSocket = new ServerSocket(5544);
 	}
 	
@@ -41,6 +73,17 @@ public class StreamServer {
 		return (baseSDP+streamDescription).replace("\r\n","\n").replace("\n", "\r\n");
 	}
 	
+	public static String[] streamCommand(String ip, int video, int audio) {
+		return new String[] {
+				"fbstream",
+				"/dev/graphics/fb0",
+				"/system/audio_loop",
+				ip,
+				Integer.toString(video),
+				Integer.toString(audio)
+		};
+	}
+		
 	private void addSession() {
 		String str = "rtsp";
 		Log.e(TAG,"adding new session : rtsp");
@@ -86,6 +129,8 @@ public class StreamServer {
 		
 		Log.e(TAG,"Session found!");
 			
+		//removeSession(sess);
+		
 		return sess;
 	}
 }

@@ -12,16 +12,8 @@ extern "C" {
  * Method:    InitSockClient
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_org_mitre_svmp_stream_Session_InitUnixSockClient
+JNIEXPORT jint JNICALL Java_org_mitre_svmp_stream_Session_InitSockClient
   (JNIEnv *, jobject, jstring);
-
-/*
- * Class:     org_mitre_svmp_stream_Session
- * Method:    InitSockClient
- * Signature: (Ljava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_mitre_svmp_stream_Session_InitTCPSockClient
-  (JNIEnv *, jobject, jstring, jstring);
 
 /*
  * Class:     org_mitre_svmp_stream_Session

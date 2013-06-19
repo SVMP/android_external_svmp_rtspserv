@@ -15,29 +15,20 @@
  */
 package org.mitre.svmp.stream;
 
+//import java.io.IOException;
 import android.util.Log;
 
 public class Session {
-	String id, clientIP;
+	String id, ip;
 	StreamServer ss;
 	long time;
 	Process p = null;
-
-	private native int InitUnixSockClient(String path);
-	private native int InitTCPSockClient(String path, String port);
+	private native int InitSockClient(String path);
 	private native int SockClientWrite(int fd,RTSPEventMessage event);	
 	private native int SockClientClose(int fd);	
-
 	private int sockfd;
 	private static final String TAG = "RTSP-SESSION";
 	private String SDP;	
-
-	private String fbstream_host = "192.168.100.50";
-	private String fbstream_port = "4321";
-	//private String fb_graphics_device = "/dev/graphics/fb0";
-	//private String fb_audio_device = "/system/audio_loop";
-	private String fb_graphics_device = "/tmp/svmp.graphics_fb.shm";
-	private String fb_audio_device = "/tmp/svmp.audio_loop";
 			
 	
 	public String getSDP() {	    
@@ -73,8 +64,7 @@ public class Session {
 		if(Math.abs(time - System.currentTimeMillis()) > 30 * 1000) {	// more than thirty seconds old 
 			ss.removeSession(this);
 			return false;
-		}
-	*/
+		}		*/
 		return true;
 	}
 
@@ -86,14 +76,14 @@ public class Session {
 		return id;
 	}
 
-	public void start(String clientIP) {
+	public void start(String ip) {
 		started = true;
-		this.clientIP = clientIP;
+		this.ip = ip;
 				
 	}
 	
 	public void stop() {		
-		Log.e(TAG,"stopping fbstream with: ip: " + clientIP + " video: " +video +" audio: " + audio );
+		Log.e(TAG,"stopping fbstream with: ip: " + ip + " video: " +video +" audio: " + audio );
 		RTSPEventMessage evt = new RTSPEventMessage();
 		evt.cmd = RTSPEventMessage.STOP;
 		SockClientWrite(this.sockfd,evt);
@@ -112,32 +102,43 @@ public class Session {
 	}
 
 	public void play() {
-		if (this.sockfd == 0)
-			//this.sockfd = InitUnixSockClient("/dev/socket/rtsp_command");
-			this.sockfd = InitTCPSockClient(fbstream_host, fbstream_port);
-
-		Log.e(TAG,"starting fbstream with: ip: " + clientIP + " video: " +video +" audio: " + audio );
-		RTSPEventMessage evt = new RTSPEventMessage();
-		evt.cmd = RTSPEventMessage.START;
-		evt.Gdev = fb_graphics_device;
-		evt.Adev = fb_audio_device;
-		evt.IP = clientIP;
-		evt.vidport = video;
-		evt.audport = audio;
-		SockClientWrite(sockfd,evt);
-	}
+		 if (this.sockfd == 0)
+	    	this.sockfd = InitSockClient("/dev/socket/rtsp_command");
+		 Log.e(TAG,"starting fbstream with: ip: " + ip + " video: " +video +" audio: " + audio );
+		 RTSPEventMessage evt = new RTSPEventMessage();
+		 evt.cmd = RTSPEventMessage.START;
+		 evt.Gdev = "/dev/graphics/fb0";
+		 evt.Adev = "/system/audio_loop";
+		 evt.IP = ip;
+		 evt.vidport = video;
+		 evt.audport = audio;
+		 SockClientWrite(sockfd,evt);
+	 }
 	
 	public void retrieveSDP() {
 		if (this.sockfd == 0)
-			//this.sockfd = InitUnixSockClient("/dev/socket/rtsp_command");
-			this.sockfd = InitTCPSockClient(fbstream_host, fbstream_port);
-		Log.e(TAG,"sockfd =" +this.sockfd);
-
-		Log.e(TAG,"getting SDP from fbstream");
-		RTSPEventMessage evt = new RTSPEventMessage();
-		evt.cmd = RTSPEventMessage.PLAYSDP;
+	    	this.sockfd = InitSockClient("/dev/socket/rtsp_command");
+	    Log.e(TAG,"sockfd =" +this.sockfd);
+		
+		 Log.e(TAG,"getting SDP from fbstream");
+		 
+		 RTSPEventMessage evt = new RTSPEventMessage();
+		 evt.cmd = RTSPEventMessage.PLAYSDP;
 		// SDP is read in JNI function
-		SockClientWrite(sockfd,evt); 		 
-		SDP=evt.SDP;		
+		 SockClientWrite(sockfd,evt); 		 
+		 SDP=evt.SDP;		
 	}
+	/*
+	 *public void play() {		
+	 *        try {
+	 *                System.err.println("starting fbstream with: ip: " + ip + " video: " +video +" audio: " + audio );
+	 *                p = Runtime.getRuntime().exec(StreamServer.streamCommand(ip,video,audio));
+	 *        } catch (IOException e) {
+	 *                System.err.println("Couldn't start video stream process!");
+	 *                e.printStackTrace();
+	 *        }
+	 *}
+	 */
+
+	
 }

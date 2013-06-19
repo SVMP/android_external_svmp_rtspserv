@@ -21,8 +21,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <unistd.h>
 #include <errno.h>
 #define LOG_TAG "svmp_rtsp_jni"
@@ -50,6 +48,7 @@ struct svmp_fbstream_init_t {
 #define PRINTSDP 5
 
 
+
 /*
  *
  *12/05/2012
@@ -57,9 +56,9 @@ struct svmp_fbstream_init_t {
  *
  */
 
-jint Java_org_mitre_svmp_stream_Session_InitUnixSockClient( JNIEnv* env, jobject thiz,jstring jpath)
+jint Java_org_mitre_svmp_stream_Session_InitSockClient( JNIEnv* env, jobject thiz,jstring jpath)
 {
-	int clifd, i,n;
+	int clifd,newfd,fdmax, i,n;
 	struct sockaddr_un addr;
 	struct sockaddr_un  cli_addr, serv_addr;
 	socklen_t servlen;
@@ -87,55 +86,6 @@ jint Java_org_mitre_svmp_stream_Session_InitUnixSockClient( JNIEnv* env, jobject
 	return clifd;
 }
 
-jint Java_org_mitre_svmp_stream_Session_InitTCPSockClient( JNIEnv* env, jobject thiz,jstring jpath, jstring jport)
-{
-	int clifd, i,n,s;
-	struct addrinfo hints;
-	struct addrinfo *result, *rp;
-	struct sockaddr_un  cli_addr, serv_addr;
-
-	const char *host=(*env)->GetStringUTFChars( env, jpath , NULL );
-	const char *port=(*env)->GetStringUTFChars( env, jport , NULL );
-	
-	bzero((char *) &hints, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = 0;
-	hints.ai_protocol = 0;
-
-	s = getaddrinfo(host, port, &hints, &result);
-	if (s != 0) {
-		LOGD("getaddrinfo: %s\n", gai_strerror(s));
-		return -1;
-	}
-
-	for (rp = result; rp != NULL; rp = rp->ai_next) {
-		clifd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-		if (clifd < 0) {
-			LOGD("error opening socket: %s\n", strerror(errno));
-			continue;
-		}
-		if (connect(clifd, rp->ai_addr, rp->ai_addrlen) < 0)
-			LOGD("error with connect(): %s\n", strerror(errno));
-		else
-			break;
-
-		close(clifd);
-	}
-
-	if (rp == NULL) {
-		LOGD("Could not connect to %s:%s\n", host, port);
-		return -1;
-	}
-
-	(*env)->ReleaseStringUTFChars(env, jpath, host);
-	(*env)->ReleaseStringUTFChars(env, jport, port);
-	LOGD("clifd is %d\n",clifd);
-
-	freeaddrinfo(result);
-
-	return clifd;
-}
 
 /*
  * Class:     org_mitre_svmp_stream_Session
